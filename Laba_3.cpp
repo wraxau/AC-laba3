@@ -29,10 +29,10 @@ public:
  // Уведомляем один из ожидающих потоков о наличии нового элемента
     }
 
-    // Метод извлечения элемента из очереди
+    // Извлечения элемента из очереди
     bool pop(T& value) {
         std::unique_lock<std::mutex> lock(mutex); 
-// Блокируем мьютекс, позволяя другим потокам ждать, если очередь пуста
+// Блокируем мьютекс
         cond_var.wait(lock, [this]() { return !queue.empty(); }); // Ожидаем, пока очередь не станет непустой
 
         if (queue.empty()) return false; // Если очередь пуста, 
@@ -40,16 +40,13 @@ public:
 
         value = queue.front(); // Получаем элемент из начала очереди
         queue.pop(); // Удаляем элемент из очереди
-        return true; // Возвращаем true, чтобы указать на успешное
-// извлечение
+        return true; 
     }
 
     void stop() {
-        cond_var.notify_all(); // Уведомляем все потоки, 
-//ожидающие в условной переменной
+        cond_var.notify_all(); // Уведомляем все потоки, ожидающие в условной переменной
     }
 };
-
 
 // Константы
 const std::string INPUT_DIR = "input_images";
@@ -63,13 +60,12 @@ BlockingQueue<std::pair<std::string, std::string>> task_queue;
 bool isHiddenFile(const std::string& file_name) {
     return file_name[0] == '.';
 }
-// Функция-производитель: добавляет задачи в очередь
+// Добавляет задачи в очередь
 void producer(const std::string& input_dir) {
     for (const auto& entry : fs::directory_iterator(input_dir)) { 
 // Проходим по всем элементам в директории входных изображений
         if (!entry.is_regular_file()) { 
             continue; // Пропускаем всё, что не является файлом 
-//(например, директории)
         }
 
         std::string file_name = entry.path().filename().string(); // Получаем имя файла
@@ -87,7 +83,7 @@ void producer(const std::string& input_dir) {
 // Получаем полный путь к файлу
             std::cout << "[Producer] Adding " << file_name << " to queue" << std::endl;
             task_queue.push({file_name, file_path}); 
-// Добавляем задачу в очередь (имя файла и путь)
+// Добавляем задачу в очередь 
         } else {
             std::cout << "[Producer] Skipping non-image file: " << file_name << std::endl; 
             // Пропускаем файлы, которые не являются изображениями
@@ -95,8 +91,7 @@ void producer(const std::string& input_dir) {
     }
 
 
-    // Сигнал завершения для Consumers: добавляем пустые задачи
-// для завершения потоков-потребителей
+    // Сигнал завершения для Consumers: добавляем пустые задачи для завершения потоков-потребителей
     for (int i = 0; i < NUM_CONSUMERS; ++i) {
         task_queue.push({"", ""}); 
     }
@@ -142,7 +137,7 @@ void consumer() {
     std::cout << "[Consumer-" << std::this_thread::get_id() << "] Exiting" << std::endl; 
 }
 
-// Основная функция программы
+
 int main() {
     // Создаем выходную директорию, если её нет
     if (!fs::exists(OUTPUT_DIR)) { 
@@ -164,6 +159,6 @@ int main() {
     }
 
     std::cout << "[Main] All tasks completed" << std::endl; 
-    return 0;  // Завершаем программу с кодом 0 (успешно)
+    return 0;  
 }
 
