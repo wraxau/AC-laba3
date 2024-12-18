@@ -133,7 +133,7 @@ int main() {
         fs::create_directory(OUTPUT_DIR);
     }
 
-    // Запускаем потоки
+    // Запускаем потоки Producer-Customer
     std::thread producer_thread(producer, INPUT_DIR);
     std::vector<std::thread> consumer_threads;
     for (int i = 0; i < NUM_CONSUMERS; ++i) {
